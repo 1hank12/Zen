@@ -50,3 +50,24 @@ async def get_investment_advice(symbol: str, market_data: dict, news_data: list)
     except Exception as e:
         logger.error(f"Error calling OpenAI API: {e}")
         return "抱歉，在分析過程中發生了一些錯誤。"
+
+async def chat_with_ai(user_text: str) -> str:
+    """自由對話：讓 AI 使用自然語言回覆財經問題"""
+    try:
+        system_prompt = (
+            "您是一位具備數十年經驗的華爾街量化金融分析師。您的任務是為使用者解答任何「股票、ETF、匯率或財經知識」的問題。"
+            "請用繁體中文、淺顯易懂但具備專業深度的口吻回答。如果是比較型的問題 (例如 0050 vs VOO)，請客觀分析優劣勢與適用對象。"
+        )
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_text}
+            ],
+            temperature=0.6,
+            max_tokens=800
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"Error in chat_with_ai: {e}")
+        return "不好意思，我的連線似乎出了一點狀況，請稍後再試！"

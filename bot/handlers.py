@@ -54,11 +54,19 @@ async def analyze_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     market_data = get_stock_data(normalized_symbol, market_type)
     news_data = get_stock_news(raw_symbol, market_type) # 新聞用沒有 .TW 的字串去 Google 搜尋比較精準
     
-    if not market_data or market_data.get('current_price') is None:
-        await status_message.edit_text(f"找不到 {normalized_symbol} 的相關數據，請確認公司名稱是否正確上市。")
+    # 修改判斷雙軌包裹是否有內容的邏輯
+    has_data = False
+    if market_data:
+        for source, data in market_data.items():
+            if data and data.get("current_price"):
+                has_data = True
+                break
+
+    if not has_data:
+        await status_message.edit_text(f"找不到 {normalized_symbol} 的相關數據，請確認公司名稱或是 ETF 代碼是否正確。")
         return
         
-    await status_message.edit_text(f"【{market_type}】數據收集完畢！正在交由 OpenAI GPT-4o 進行深入分析... 🧠\n(這大約需要 10-15 秒)")
+    await status_message.edit_text(f"【{market_type}】雙源數據收集完畢！正在交由 OpenAI GPT-4o 進行交叉查核... 🧠\n(這大約需要 10-15 秒)")
     
     # 2. 呼叫 OpenAI
     analysis = await get_investment_advice(normalized_symbol, market_data, news_data)
@@ -66,6 +74,16 @@ async def analyze_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 3. 回傳結果
     await status_message.edit_text(analysis)
 
+from ai.llm import chat_with_ai
+
 async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """處理一般文字對話"""
-    await update.message.reply_text("目前我只聽得懂 /analyze 這句指令喔！例如：/analyze 微軟 或 /analyze 輝達")
+    user_text = update.message.text
+    status_message = await update.message.reply_text("思考中... 💡")
+    
+    try:
+        response = await chat_with_ai(user_text)
+        await status_message.edit_text(response)
+    except Exception as e:
+        logger.error(f"Chat Handler Error: {e}")
+        await status_message.edit_text("目前伺服器異常，無法處理您的聊天訊息。")
