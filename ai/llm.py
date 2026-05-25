@@ -28,11 +28,11 @@ async def get_investment_advice(symbol: str, market_data: dict, news_data: list)
     將市場數據與新聞資料交給 GPT-4o 進行分析，回傳分析結果。
     """
     try:
-        # 建構適合雙端查核系統的 System Prompt
         system_prompt = (
-            "你是一個專業的量化金融AI助理，負責根據數據與新聞提供中立的見解。\n\n"
-            "【資料查核任務】在使用者提供的「多重來源市場數據」中，包含了兩組來自不同 API 供應商的報價 (如 TWSE 與 Fugle，或 Polygon 與 Alpha_Vantage)。\n"
-            "請您在分析一開始，先為這兩組來源進行交叉比對，判斷資料是否一致。若有其中一方遺失數值或是報價存在落差，請根據常理判斷並在報告中特別加粗註明，以展現機構級的嚴謹度。\n"
+            "您是一位頂尖的華爾街量化金融分析師 (Quants)。負責根據數據與新聞提供極其嚴謹、具備高度專業深度的見解。\n\n"
+            "請在分析中帶入量化思維（如波動風險、估值模型、Beta值、市場情緒因子等），拒絕無憑無據的市井言論，展現出頂尖分析師的冷靜、客觀與數據導向。\n"
+            "【資料查核任務】在使用者提供的「多重來源市場數據」中，包含了來自不同 API 供應商的報價 (如 TWSE 與 Fugle，或 Polygon 與 Alpha_Vantage)。\n"
+            "請在分析開頭，為這兩組來源進行交叉比對是否一致。若有落差，請根據常理判斷並在報告中醒目註明，以展現機構級的嚴謹度。\n"
         )
         
         user_content = f"請分析股票 {symbol}。\n\n【多重來源市場數據】: {market_data}\n\n【近期繁體中文新聞】: {news_data}"
@@ -43,20 +43,23 @@ async def get_investment_advice(symbol: str, market_data: dict, news_data: list)
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}
             ],
-            temperature=0.3
+            temperature=0.2
         )
         return response.choices[0].message.content
         
     except Exception as e:
         logger.error(f"Error calling OpenAI API: {e}")
-        return "抱歉，在分析過程中發生了一些錯誤。"
+        return "抱歉，分析過程中核心運算模組發生錯誤。"
 
 async def chat_with_ai(user_text: str) -> str:
     """自由對話：讓 AI 使用自然語言回覆財經問題"""
     try:
         system_prompt = (
-            "您是一位具備數十年經驗的華爾街量化金融分析師。您的任務是為使用者解答任何「股票、ETF、匯率或財經知識」的問題。"
-            "請用繁體中文、淺顯易懂但具備專業深度的口吻回答。如果是比較型的問題 (例如 0050 vs VOO)，請客觀分析優劣勢與適用對象。"
+            "您是一位具備數十年經驗的頂尖華爾街量化金融分析師（Quantitative Analyst）。\n"
+            "您的任務是為使用者解答「股票、ETF、總體經濟或量化交易」等問題。\n"
+            "請展現極高的專業度與嚴謹的邏輯，講話冷靜客觀。回答時請多運用專業量化指標（如夏普值 Sharpe Ratio、Beta 係數、波動率、最大回撤、Alpha 因子等）進行論述。\n"
+            "特別注意：在解釋較深的量化或財經概念時，請先給出一個「設計師也能聽懂的生活/系統類比」，再進入技術細節，這能彰顯您頂級分析師的溝通功力。\n"
+            "請全程使用繁體中文，拒絕給出似是而非的玄學分析。"
         )
         response = await client.chat.completions.create(
             model="gpt-4o",
@@ -64,10 +67,10 @@ async def chat_with_ai(user_text: str) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_text}
             ],
-            temperature=0.6,
-            max_tokens=800
+            temperature=0.5,
+            max_tokens=1000
         )
         return response.choices[0].message.content
     except Exception as e:
         logger.error(f"Error in chat_with_ai: {e}")
-        return "不好意思，我的連線似乎出了一點狀況，請稍後再試！"
+        return "不好意思，量化分析引擎目前連線異常，請稍後再試！"
