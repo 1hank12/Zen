@@ -21,7 +21,7 @@ def main():
     init_db()
     
     token = os.getenv("TELEGRAM_BOT_TOKEN")
-    if not token or token == "your_telegram_bot_token_here":
+    if not token or token == "8849432350:AAFx89yOrZLgpTkoRMtUgWaXjexfc4XMtqg":
         logger.error("錯誤：請在 .env 中填寫 TELEGRAM_BOT_TOKEN")
         return
         
