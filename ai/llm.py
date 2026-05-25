@@ -7,15 +7,35 @@ logger = logging.getLogger(__name__)
 # 初始化 OpenAI 非同步客戶端
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+async def resolve_stock_symbol(query: str) -> str:
+    """將使用者的任意輸入（如中文名稱、錯字）轉換為標準股票代碼"""
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a stock symbol resolver. The user gives a company name. Return ONLY the standard ticker symbol. If it's a Taiwan company, return only the digits (e.g., 2330). If it's a US company, return only the letters (e.g., AAPL). No punctuation or other words."},
+                {"role": "user", "content": query}
+            ],
+            temperature=0.0
+        )
+        return response.choices[0].message.content.strip().upper()
+    except Exception as e:
+        logger.error(f"Error resolving symbol: {e}")
+        return query.strip().upper()
+
 async def get_investment_advice(symbol: str, market_data: dict, news_data: list) -> str:
     """
     將市場數據與新聞資料交給 GPT-4o 進行分析，回傳分析結果。
     """
     try:
-        # TODO: 建構適合投資分析的 System Prompt 與 User Prompt
-        system_prompt = "你是一個專業的量化金融AI助理，負責根據數據與新聞提供中立的見解。"
+        # 建構適合雙端查核系統的 System Prompt
+        system_prompt = (
+            "你是一個專業的量化金融AI助理，負責根據數據與新聞提供中立的見解。\n\n"
+            "【資料查核任務】在使用者提供的「多重來源市場數據」中，包含了兩組來自不同 API 供應商的報價 (如 TWSE 與 Fugle，或 Polygon 與 Alpha_Vantage)。\n"
+            "請您在分析一開始，先為這兩組來源進行交叉比對，判斷資料是否一致。若有其中一方遺失數值或是報價存在落差，請根據常理判斷並在報告中特別加粗註明，以展現機構級的嚴謹度。\n"
+        )
         
-        user_content = f"請分析股票 {symbol}。\n\n市場數據: {market_data}\n\n近期新聞: {news_data}"
+        user_content = f"請分析股票 {symbol}。\n\n【多重來源市場數據】: {market_data}\n\n【近期繁體中文新聞】: {news_data}"
         
         response = await client.chat.completions.create(
             model="gpt-4o",
