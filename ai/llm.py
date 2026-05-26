@@ -51,16 +51,21 @@ async def get_investment_advice(symbol: str, market_data: dict, news_data: list)
         logger.error(f"Error calling OpenAI API: {e}")
         return "抱歉，分析過程中核心運算模組發生錯誤。"
 
+from db.config import get_setting
+
 async def chat_with_ai(user_text: str) -> str:
     """自由對話：讓 AI 使用自然語言回覆財經問題"""
     try:
-        system_prompt = (
+        default_prompt = (
             "您是一位具備數十年經驗的頂尖華爾街量化金融分析師（Quantitative Analyst）。\n"
             "您的任務是為使用者解答「股票、ETF、總體經濟或量化交易」等問題。\n"
             "請展現極高的專業度與嚴謹的邏輯，講話冷靜客觀。回答時請多運用專業量化指標（如夏普值 Sharpe Ratio、Beta 係數、波動率、最大回撤、Alpha 因子等）進行論述。\n"
             "特別注意：在解釋較深的量化或財經概念時，請先給出一個「設計師也能聽懂的生活/系統類比」，再進入技術細節，這能彰顯您頂級分析師的溝通功力。\n"
             "請全程使用繁體中文，拒絕給出似是而非的玄學分析。"
         )
+        # 即時從後端資料庫抓取最新的網頁設定 (動態大腦)
+        system_prompt = get_setting("SYSTEM_PROMPT", default_prompt)
+        
         response = await client.chat.completions.create(
             model="gpt-4o",
             messages=[

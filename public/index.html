@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stockly AI - Control Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+    
+    <div class="app-container">
+        <header class="glass-panel">
+            <h1>Stockly AI <span>Vault</span></h1>
+            <div class="status-indicator">
+                <span class="pulse"></span>
+                <span id="bot-status">System Online</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="dashboard-stats glass-panel">
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <p class="stat-value" id="user-count">--</p>
+                </div>
+            </section>
+
+            <section class="config-section glass-panel">
+                <h2>AI Persona Builder</h2>
+                <p class="subtitle">Customize the system prompt to alter the bot's behavior in real-time.</p>
+                <div class="form-group">
+                    <label>System Prompt (AI 系統提示詞)</label>
+                    <textarea id="SYSTEM_PROMPT" rows="6" placeholder="Enter the AI persona instructions here..."></textarea>
+                    <button class="save-btn" onclick="saveConfig('SYSTEM_PROMPT')">Deploy Update 🚀</button>
+                </div>
+            </section>
+
+            <section class="config-section glass-panel">
+                <h2>API Keys Vault</h2>
+                <p class="subtitle">Securely manage your data provider credentials.</p>
+                
+                <div class="form-group">
+                    <label>Fugle API Key (富果台股金鑰)</label>
+                    <div class="input-row">
+                        <input type="password" id="FUGLE_API_KEY" placeholder="sk-...">
+                        <button class="save-btn" onclick="saveConfig('FUGLE_API_KEY')">Save Config</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Polygon API Key (美股金鑰)</label>
+                    <div class="input-row">
+                        <input type="password" id="POLYGON_API_KEY" placeholder="pk-...">
+                        <button class="save-btn" onclick="saveConfig('POLYGON_API_KEY')">Save Config</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Designed by Antigravity for professional quant environments.</p>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
