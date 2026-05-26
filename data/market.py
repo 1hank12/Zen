@@ -2,7 +2,6 @@ import logging
 import requests
 import os
 from bs4 import BeautifulSoup
-import yfinance as yf
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +93,11 @@ def get_stock_news(original_symbol: str, market_type: str) -> list:
             items = soup.findAll('item')
             return [item.title.text for item in items[:3]]
         else:
-            ticker = yf.Ticker(original_symbol)
-            news = ticker.news
-            return [n['title'] for n in news[:3]]
+            url = f"https://news.google.com/rss/search?q={original_symbol}+stock&hl=en-US&gl=US&ceid=US:en"
+            response = requests.get(url, timeout=5)
+            soup = BeautifulSoup(response.content, features="xml")
+            items = soup.findAll('item')
+            return [item.title.text for item in items[:3]]
     except Exception as e:
         logger.error(f"Error fetching news for {original_symbol}: {e}")
         return []
